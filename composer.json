@@ -1,4 +1,3 @@
-
 {
     "name": "embanet-compass/moodle-qtype-formulas",
     "type": "moodle-qtype",
@@ -7,3 +6,4 @@
         "installer-name": "formulas",
         "moodle": { "package_folder_name" : "formulas" }
     }
+}
