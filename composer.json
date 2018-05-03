@@ -1,0 +1,9 @@
+{
+    "name": "embanet-compass/moodle-qtype-formulas",
+    "type": "moodle-qtype",
+    "description": "Question Type Plugin",
+    "extra": {
+        "installer-name": "formulas",
+        "moodle": { "package_folder_name" : "formulas" }
+    }
+}
