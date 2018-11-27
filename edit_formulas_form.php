@@ -68,6 +68,10 @@ class qtype_formulas_edit_form extends question_edit_form {
 
         $mform->insertElementBefore($mform->createElement('header', 'mainq', get_string('mainq', 'qtype_formulas'),
             ''), 'questiontext');
+        $numberingoptions = question_bank::get_qtype('multichoice')->get_numbering_styles();
+        $mform->addElement('select', 'answernumbering',
+                get_string('answernumbering', 'qtype_multichoice'), $numberingoptions);
+        $mform->setDefault('answernumbering', get_config('qtype_multichoice', 'answernumbering'));
         // Part's answers.
         $this->add_per_answer_fields($mform, get_string('answerno', 'qtype_formulas', '{no}'),
             question_bank::fraction_options(), 1, 2);
@@ -200,6 +204,19 @@ class qtype_formulas_edit_form extends question_edit_form {
             array('rows' => 3), $this->editoroptions);
         $repeatedoptions['feedback']['helpbutton'] = array('feedback', 'qtype_formulas');
         $repeatedoptions['feedback']['advanced'] = true;
+        // Part's combined feedback.
+        $repeated[] = $mform->createElement('editor', 'partcorrectfb', get_string('correctfeedback', 'qtype_formulas'),
+            array('rows' => 3), $this->editoroptions);
+        $repeatedoptions['partcorrectfb']['helpbutton'] = array('correctfeedback', 'qtype_formulas');
+        $repeatedoptions['partcorrectfb']['advanced'] = true;
+        $repeated[] = $mform->createElement('editor', 'partpartiallycorrectfb', get_string('partiallycorrectfeedback', 'qtype_formulas'),
+            array('rows' => 3), $this->editoroptions);
+        $repeatedoptions['partpartiallycorrectfb']['helpbutton'] = array('partiallycorrectfeedback', 'qtype_formulas');
+        $repeatedoptions['partpartiallycorrectfb']['advanced'] = true;
+        $repeated[] = $mform->createElement('editor', 'partincorrectfb', get_string('incorrectfeedback', 'qtype_formulas'),
+            array('rows' => 3), $this->editoroptions);
+        $repeatedoptions['partincorrectfb']['helpbutton'] = array('incorrectfeedback', 'qtype_formulas');
+        $repeatedoptions['partincorrectfb']['advanced'] = true;
         $answersoption = 'answers';
         return $repeated;
     }
@@ -248,19 +265,27 @@ class qtype_formulas_edit_form extends question_edit_form {
                     foreach ($tags as $tag) {
                         $defaultvalues[$tag.'['.$key.']'] = $answer->$tag;
                     }
-                    // Prepare part's text.
-                    $subqtid = file_get_submitted_draft_itemid('subqtext['.$key.']');
-                    $subqt = file_prepare_draft_area($subqtid, $this->context->id, 'qtype_formulas',
-                            'answersubqtext', empty($answer->id) ? null : (int)$answer->id,
-                            $this->fileoptions, $answer->subqtext);
-                    $defaultvalues['subqtext['.$key.']'] = array('text' => $subqt,
-                            'format' => $answer->subqtextformat, 'itemid' => $subqtid);
-                    $subqfbid = file_get_submitted_draft_itemid('feedback['.$key.']');
-                    $subqfb = file_prepare_draft_area($subqfbid, $this->context->id, 'qtype_formulas',
-                            'answerfeedback', empty($answer->id) ? null : (int)$answer->id,
-                            $this->fileoptions, $answer->feedback);
-                    $defaultvalues['feedback['.$key.']'] = array('text' => $subqfb,
-                            'format' => $answer->feedbackformat, 'itemid' => $subqfbid);
+
+                    $fields = array('subqtext', 'feedback');
+                    foreach ($fields as $field) {
+                        $fieldformat = $field . 'format';
+                        $itemid = file_get_submitted_draft_itemid($field . '[' . $key . ']');
+                        $fieldtxt = file_prepare_draft_area($itemid, $this->context->id, 'qtype_formulas',
+                                'answer' . $field, empty($answer->id) ? null : (int)$answer->id,
+                                $this->fileoptions, $answer->$field);
+                        $defaultvalues[$field . '[' . $key . ']'] = array('text' => $fieldtxt,
+                            'format' => $answer->$fieldformat, 'itemid' => $itemid);
+                    }
+                    $fields = array('partcorrectfb', 'partpartiallycorrectfb', 'partincorrectfb');
+                    foreach ($fields as $field) {
+                        $fieldformat = $field . 'format';
+                        $itemid = file_get_submitted_draft_itemid($field . '[' . $key . ']');
+                        $fieldtxt = file_prepare_draft_area($itemid, $this->context->id, 'qtype_formulas',
+                                $field, empty($answer->id) ? null : (int)$answer->id,
+                                $this->fileoptions, $answer->$field);
+                        $defaultvalues[$field . '[' . $key . ']'] = array('text' => $fieldtxt,
+                            'format' => $answer->$fieldformat, 'itemid' => $itemid);
+                    }
                 }
             }
 
